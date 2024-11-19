@@ -9,6 +9,10 @@ import os
 import time
 import platform
 import subprocess
+import requests
+from PIL import Image
+import numpy as np
+import mimetypes
 
 # Daftar pustaka yang dibutuhkan
 REQUIRED_LIBRARIES = ["requests", "Pillow", "numpy"]
@@ -24,12 +28,6 @@ def install_libraries():
 
 # Jalankan instalasi pustaka jika belum ada
 install_libraries()
-
-# Impor pustaka setelah instalasi
-import requests
-from PIL import Image
-import numpy as np
-import mimetypes
 
 # Kode warna ANSI untuk teks berwarna di terminal
 GREEN = "\033[92m"
@@ -59,7 +57,12 @@ def countdown(seconds):
 
 # Fungsi utama untuk mengonversi gambar menjadi ASCII
 def image_to_ascii(image_path, new_width=100, output_folder="ascii_output", output_file="output.txt"):
-    image = Image.open(image_path)
+    try:
+        image = Image.open(image_path)
+    except Exception as e:
+        print(f"{RED}Terjadi kesalahan saat membuka gambar: {e}{RESET}")
+        return
+
     width, height = image.size
     aspect_ratio = height / width
     new_height = int(new_width * aspect_ratio * 0.55)
@@ -91,7 +94,7 @@ def image_to_ascii(image_path, new_width=100, output_folder="ascii_output", outp
             with open(output_path, "w") as f:
                 f.write(ascii_image)
             print(f"{GREEN}Hasil ASCII disimpan di folder '{output_folder}' dengan nama file '{output_file}'{RESET}")
-            
+
             # Menanyakan apakah ingin membuka file hasil ASCII
             open_file = input(f"{BLUE}Apakah Anda ingin membuka file hasil ASCII ini? (yes/no): {RESET}").strip().lower()
             if open_file == "yes":
@@ -116,16 +119,16 @@ def download_image_from_url(folder_name="downloaded_images"):
         try:
             response = requests.get(image_url)
             response.raise_for_status()
-            
+
             content_type = response.headers['Content-Type']
             extension = mimetypes.guess_extension(content_type.split(';')[0]) or ''
             if extension.lower() not in ['.jpg', '.jpeg', '.png']:
                 print(f"{RED}Format gambar tidak valid. Silakan masukkan URL yang mengarah ke gambar JPG atau PNG.{RESET}")
                 continue
-            
+
             os.makedirs(folder_name, exist_ok=True)
             image_path = os.path.join(folder_name, f"downloaded_image{extension}")
-            
+
             with open(image_path, "wb") as f:
                 f.write(response.content)
             print(f"{GREEN}Gambar berhasil diunduh dari {image_url} dan disimpan di '{folder_name}' sebagai '{os.path.basename(image_path)}'.{RESET}")
@@ -153,10 +156,40 @@ def pilihan_kedua():
         countdown(5)
     clear_terminal()
 
+# Fungsi untuk menampilkan tampilan menu yang diinginkan dengan warna hijau
+def display_intro():
+    print(f"{GREEN}")
+    print("""
+                 %%%%%%%%%%%%%%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%                              
+                  #:::::::::::= *--------------------------*                              
+                   #:::::::::= *--------------------------*                               
+                    #:::::::+ +--------------------------*                                
+                     #:::::+ +--------------------------*                                 
+                      #:::* =---------+++++++++++++++--*             ____________  _________  ____   ___ _   _________  ____                      
+                       %-* =---------#               *+             / __/ ___/ _ \/ __/ __/ |/ / /  / _ | | / / __/ _ \/ __/                     
+                         %=---------#                              _\ \/ /__/ , _/ _// _//    / /__/ __ | |/ / _// , _/\ \                       
+                         #----------=---------------*             /___/\___/_/|_/___/___/_/|_/____/_/ |_|___/___/_/|_/___/                      
+                          #------------------------+             ========================================================                        
+                           #----------------------+                - PROGRAM  : FROM ZERO TO DEVELOPMENT                 
+                            %--------------------+                 - TELEGRAM : @SCREENLAVERS                    
+                             %========----------+                  - GITHUB   : https://github.com/SCREENLAVERS                      
+                                     *---------+                                          
+                                    *---------+                                           
+                                %+==---------+                                            
+                                 %----------+                                             
+                                   =-------+                                              
+                                    +-----+                                               
+                                     *---+                                                
+                                      #-+                                                 
+                                       %    
+    """)
+    print(f"{RESET}")
+
 # Fungsi menu utama
 def main_menu():
     while True:
         clear_terminal()
+        display_intro()  # Display the intro graphic with green color
         print(f"{GREEN}=== Menu Pilihan ==={RESET}")
         print(f"{YELLOW}1. Jalankan Skrip ASCII dari file lokal{RESET}")
         print(f"{YELLOW}2. Unduh gambar dari URL dan jalankan Skrip ASCII{RESET}")
